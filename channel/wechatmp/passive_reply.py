@@ -31,12 +31,12 @@ def send_long_reply(channel, from_user, msg, reply_content):
         # 发送第一部分
         reply_text = splits[0] + "\n【未完待续】"
         replyPost = create_reply(reply_text, msg)
-        channel.client.send_text(from_user, reply_text)
+        channel.client.message.send_text(from_user, reply_text)
         
         # 如果有剩余部分，继续发送
         if len(splits) > 1:
             time.sleep(1)  # 等待1秒后发送下一部分
-            channel.client.send_text(from_user, splits[1])
+            channel.client.message.send_text(from_user, splits[1])
             
     except Exception as e:
         logger.error(f"Error sending long reply: {e}")
