@@ -30,6 +30,7 @@ def send_long_reply(channel, from_user, msg, reply_content):
         
         # 发送第一部分
         reply_text = splits[0] + "\n【未完待续】"
+        replyPost = create_reply(reply_text, msg)
         channel.client.message.send_text(from_user, reply_text)
         
         # 如果有剩余部分，继续发送
