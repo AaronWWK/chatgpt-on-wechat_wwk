@@ -1,5 +1,7 @@
 import asyncio
 import time
+import threading
+from queue import Queue
 
 import web
 from wechatpy import parse_message
@@ -14,6 +16,30 @@ from common.log import logger
 from common.utils import split_string_by_utf8_length
 from config import conf, subscribe_msg
 
+# 添加一个全局的消息队列，用于存储待发送的长回复
+message_queue = Queue()
+
+def send_long_reply(channel, from_user, msg, reply_content):
+    """异步发送长回复的函数"""
+    try:
+        splits = split_string_by_utf8_length(
+            reply_content,
+            MAX_UTF8_LEN - len("\n【未完待续】".encode("utf-8")),
+            max_split=1,
+        )
+        
+        # 发送第一部分
+        reply_text = splits[0] + "\n【未完待续】"
+        replyPost = create_reply(reply_text, msg)
+        channel.client.send_text(from_user, reply_text)
+        
+        # 如果有剩余部分，继续发送
+        if len(splits) > 1:
+            time.sleep(1)  # 等待1秒后发送下一部分
+            channel.client.send_text(from_user, splits[1])
+            
+    except Exception as e:
+        logger.error(f"Error sending long reply: {e}")
 
 # This class is instantiated once per query
 class Query:
@@ -91,7 +117,6 @@ class Query:
                         return encrypt_func(replyPost.render())
 
                 # Wechat official server will request 3 times (5 seconds each), with the same message_id.
-                # Because the interval is 5 seconds, here assumed that do not have multithreading problems.
                 request_cnt = channel.request_cnt.get(message_id, 0) + 1
                 channel.request_cnt[message_id] = request_cnt
                 logger.info(
@@ -118,7 +143,7 @@ class Query:
                         return "success"
                     else:  # request_cnt == 3:
                         # return timeout message
-                        reply_text = "【正在思考中，回复任意文字尝试获取回复】"
+                        reply_text = "【正在思考中，请稍候...】"
                         replyPost = create_reply(reply_text, msg)
                         return encrypt_func(replyPost.render())
 
@@ -140,27 +165,12 @@ class Query:
                 if reply_type == "text":
                     if len(reply_content.encode("utf8")) <= MAX_UTF8_LEN:
                         reply_text = reply_content
+                        replyPost = create_reply(reply_text, msg)
+                        return encrypt_func(replyPost.render())
                     else:
-                        continue_text = "\n【未完待续，回复任意文字以继续】"
-                        splits = split_string_by_utf8_length(
-                            reply_content,
-                            MAX_UTF8_LEN - len(continue_text.encode("utf-8")),
-                            max_split=1,
-                        )
-                        reply_text = splits[0] + continue_text
-                        channel.cache_dict[from_user].append(("text", splits[1]))
-
-                    logger.info(
-                        "[wechatmp] Request {} do send to {} {}: {}\n{}".format(
-                            request_cnt,
-                            from_user,
-                            message_id,
-                            content,
-                            reply_text,
-                        )
-                    )
-                    replyPost = create_reply(reply_text, msg)
-                    return encrypt_func(replyPost.render())
+                        # 对于长回复，使用异步方式发送
+                        threading.Thread(target=send_long_reply, args=(channel, from_user, msg, reply_content)).start()
+                        return "success"
 
                 elif reply_type == "voice":
                     media_id = reply_content
