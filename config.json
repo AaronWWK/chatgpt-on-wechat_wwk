@@ -1,0 +1,23 @@
+{
+    "channel_type": "wechatmp",
+    "model": "deepseek-chat",
+    "open_ai_api_key": "sk-rxlzxkobaxivqgxnvvzmybgtehlpptzzvfkovaavtdbtdcqt",
+    "open_ai_api_base": "https://api.siliconflow.cn/v1",
+    "single_chat_prefix": [
+        ""
+    ],
+    "single_chat_reply_prefix": "@bot",
+    "wechatmp_app_id": "wx64d3726d0f41aa71",
+    "wechatmp_app_secret": "c5ca56fc5e10a913232c4d461d8ec3c4",
+    "wechatmp_aes_key": "1AdIxoiRt6bVfiQjnWD8XKhmZBrrCEimCv8qSP4DIgW",
+    "wechatmp_token": "jadsiofj",
+    "wechatmp_port": 80,
+    "conversation_max_tokens": 3000,
+    "expires_in_seconds": 3600,
+    "character_desc": "你是基于大语言模型的AI智能助手，旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。",
+    "temperature": 0.8,
+    "subscribe_msg": "感谢您的关注！\n公众号已接入DeepSeek-V1，可以自由对话。\n受微信限制，较长的输出会先回复一句【正在思考中】，等待片刻后发送任意文字即可获取输出。",
+    "use_linkai": true,
+    "linkai_api_key": "Link_cKp6IpcL0qUpCwWm9By7jDYvxMjp1C5aZLZTxMdlR2",
+    "linkai_app_code": "DGrU8Zgq"
+}
